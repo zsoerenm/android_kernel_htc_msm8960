@@ -104,6 +104,7 @@
 #endif
 #include <linux/rt5501.h>
 #include <linux/tfa9887.h>
+#include <linux/ramoops.h>
 
 #ifdef CONFIG_HTC_BATT_8960
 #include <linux/mfd/pm8xxx/pm8921-charger-htc.h>
@@ -4774,8 +4775,23 @@ static void __init m7_allocate_memory_regions(void)
 	m7_allocate_fb_region();
 }
 
+static struct ramoops_platform_data ramoops_data = {
+        .mem_size               = 0x00005000,
+        .mem_address            = 0x80000000,
+        .record_size            = 0x00001000,
+        .dump_oops              = 1,
+};
+
+static struct platform_device ramoops_dev = {
+        .name = "ramoops",
+        .dev = {
+                .platform_data = &ramoops_data,
+        },
+};
+
 static void __init m7_cdp_init(void)
 {
+	int ret;
 	if (meminfo_init(SYS_MEMORY, SZ_256M) < 0)
 		pr_err("meminfo_init() failed!\n");
 	m7_common_init();
@@ -4801,6 +4817,11 @@ static void __init m7_cdp_init(void)
 	platform_device_register(&msm_device_uart_dm6);
 	platform_device_register(&m7_rfkill);
 #endif
+	ret = platform_device_register(&ramoops_dev);
+	if (ret) {
+		printk(KERN_ERR "unable to register platform device\n");
+		return ret;
+	}
 
 	if (!(board_mfg_mode() == 6 || board_mfg_mode() == 7))
 		m7_add_usb_devices();
