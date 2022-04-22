@@ -4820,7 +4820,7 @@ static void __init m7_cdp_init(void)
 	ret = platform_device_register(&ramoops_dev);
 	if (ret) {
 		printk(KERN_ERR "unable to register platform device\n");
-		return ret;
+		return;
 	}
 
 	if (!(board_mfg_mode() == 6 || board_mfg_mode() == 7))
